@@ -11,7 +11,6 @@ import {
   saveColourSchemes,
 } from "./colour-schemes";
 import { ForceColours } from "./force-colours";
-import lowercaseFirstLetter from "./lowercase-first-letter";
 
 function getForceLevel(
   force: GForces,

@@ -23,7 +23,7 @@ export default function openVisualiseWindow(
   const visualiseWindow = window({
     title: "Force visualiser",
     width: 280,
-    height: 280,
+    height: 210,
     content: [
       label({
         text: `Visualising ${lowercaseFirstLetter(visualisationMode)} for ${

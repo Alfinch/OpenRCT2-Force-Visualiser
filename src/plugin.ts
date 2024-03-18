@@ -12,6 +12,5 @@ registerPlugin({
 });
 
 function main() {
-  openMainWindow();
   ui.registerMenuItem("Force visualiser", openMainWindow);
 }
