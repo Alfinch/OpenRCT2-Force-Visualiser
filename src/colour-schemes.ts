@@ -25,8 +25,6 @@ const savedColourSchemes: {
  * @param ride The ride to save the colour schemes for
  */
 export function saveColourSchemes(ride: Ride) {
-  console.log("Save colour schemes for ride");
-
   const elementColourSchemes = getRideTrackElements(ride).reduce(
     (acc, { position, element }) => {
       acc[positionToKey(position)] = element.colourScheme;
@@ -89,11 +87,8 @@ export function removeAlternateColourSchemes(ride: Ride) {
  * @param ride The ride to restore the colour schemes for
  */
 export function restoreColourSchemes(ride: Ride) {
-  console.log("Restore colour schemes for ride");
-
   const saved = savedColourSchemes[ride.id];
   if (!saved) {
-    console.log("No saved colour schemes found");
     return;
   }
   savedColourSchemes[ride.id] = null;

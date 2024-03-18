@@ -11,6 +11,7 @@ import {
   saveColourSchemes,
 } from "./colour-schemes";
 import { ForceColours } from "./force-colours";
+import lowercaseFirstLetter from "./lowercase-first-letter";
 
 function getForceLevel(
   force: GForces,
@@ -126,12 +127,6 @@ export default function visualiseForces(
 
       trackElements.forEach((element) => (element.colourScheme = forceLevel));
     });
-  });
-
-  console.log(`Visualising forces for ${ride.name}`);
-  park.postMessage({
-    type: "chart",
-    text: `Visualising forces for ${ride.name}`,
   });
 
   return <IDisposable>{

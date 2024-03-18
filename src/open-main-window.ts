@@ -36,8 +36,6 @@ const EXCESSIVE_NEGATIVE_VERTICAL_G = -200;
 const EXCESSIVE_LATERAL_G = 280;
 
 export default function openMainWindow() {
-  console.log("Opening main window");
-
   const trackedRides = map.rides.filter(isTrackedRide);
   const initialRide = trackedRides.length > 0 ? trackedRides[0] : null;
 
@@ -70,7 +68,6 @@ export default function openMainWindow() {
   };
 
   model.selectedRide.subscribe((ride) => {
-    console.log(`Selected ride changed to "${ride?.name ?? "null"}"`);
     if (ride != null) {
       saveColourSchemes(ride);
     }
@@ -161,7 +158,7 @@ export default function openMainWindow() {
           horizontal([
             spinner({
               onChange: (number: number) => {
-                console.log(number);
+                model.thresholds.moderate.lateral = number;
               },
               value: model.thresholds.moderate.lateral,
               step: 10,
@@ -176,7 +173,7 @@ export default function openMainWindow() {
             }),
             spinner({
               onChange: (number: number) => {
-                console.log(number);
+                model.thresholds.moderate.positiveVertical = number;
               },
               value: model.thresholds.moderate.positiveVertical,
               step: 10,
@@ -191,7 +188,7 @@ export default function openMainWindow() {
             }),
             spinner({
               onChange: (number: number) => {
-                console.log(number);
+                model.thresholds.moderate.negativeVertical = number;
               },
               value: model.thresholds.moderate.negativeVertical,
               step: 10,
@@ -240,7 +237,7 @@ export default function openMainWindow() {
           horizontal([
             spinner({
               onChange: (number: number) => {
-                console.log(number);
+                model.thresholds.excessive.lateral = number;
               },
               value: model.thresholds.excessive.lateral,
               step: 10,
@@ -255,7 +252,7 @@ export default function openMainWindow() {
             }),
             spinner({
               onChange: (number: number) => {
-                console.log(number);
+                model.thresholds.excessive.positiveVertical = number;
               },
               value: model.thresholds.excessive.positiveVertical,
               step: 10,
@@ -270,7 +267,7 @@ export default function openMainWindow() {
             }),
             spinner({
               onChange: (number: number) => {
-                console.log(number);
+                model.thresholds.excessive.negativeVertical = number;
               },
               value: model.thresholds.excessive.negativeVertical,
               step: 10,

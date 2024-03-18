@@ -1,10 +1,11 @@
-import { window, label, button, viewport } from "openrct2-flexui";
+import { window, label, viewport } from "openrct2-flexui";
 import { ForceThresholds } from "./force-thresholds";
 import { VisualisationMode } from "./visualisation-mode";
 import visualiseForces from "./visualise-forces";
 import openMainWindow from "./open-main-window";
 import { ForceColours } from "./force-colours";
 import onNextTick from "./on-next-tick";
+import lowercaseFirstLetter from "./lowercase-first-letter";
 
 export default function openVisualiseWindow(
   ride: Ride,
@@ -12,8 +13,6 @@ export default function openVisualiseWindow(
   thresholds: ForceThresholds,
   visualisationMode: VisualisationMode
 ) {
-  console.log("Opening visualise window");
-
   const interval = visualiseForces(
     ride,
     colours,
@@ -27,9 +26,9 @@ export default function openVisualiseWindow(
     height: 280,
     content: [
       label({
-        text: `Visualising ${visualisationMode.toLocaleLowerCase()} forces for "${
+        text: `Visualising ${lowercaseFirstLetter(visualisationMode)} for ${
           ride.name
-        }"`,
+        }`,
       }),
       viewport({
         target: ride.vehicles[0],
