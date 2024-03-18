@@ -1,4 +1,4 @@
-import openWindow from "./open-window";
+import openMainWindow from "./open-main-window";
 
 registerPlugin({
   name: "Force visualiser",
@@ -12,6 +12,6 @@ registerPlugin({
 });
 
 function main() {
-  openWindow();
-  ui.registerMenuItem("Force visualiser", openWindow);
+  openMainWindow();
+  ui.registerMenuItem("Force visualiser", openMainWindow);
 }
