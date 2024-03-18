@@ -18,7 +18,7 @@ A plugin for OpenRCT2 which visualises G forces of tracked rides by colouring th
 
 ## Thanks
 
-Thanks to [Basssiiie](https://github.com/Basssiiie) for his [plugin telate](https://github.com/Basssiiie/OpenRCT2-Simple-Typescript-Template) and [FlexUI library](https://github.com/Basssiiie/OpenRCT2-FlexUI).
+Thanks to [Basssiiie](https://github.com/Basssiiie) for his [plugin template](https://github.com/Basssiiie/OpenRCT2-Simple-Typescript-Template) and [FlexUI library](https://github.com/Basssiiie/OpenRCT2-FlexUI).
 
 Also to [Smitty](https://github.com/ltsSmitty) for his [wet paint plugin](https://github.com/ltsSmitty/Wet-Paint-Plugin) which helped me figure out how to do a lot of this.
 
