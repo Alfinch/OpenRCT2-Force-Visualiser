@@ -1,6 +1,8 @@
 import {
   LayoutDirection,
+  WritableStore,
   button,
+  checkbox,
   colourPicker,
   compute,
   dropdown,
@@ -9,18 +11,15 @@ import {
   label,
   spinner,
   store,
+  twoway,
   window,
 } from "openrct2-flexui";
-import {
-  colourIds,
-  restoreColourSchemes,
-  saveColourSchemes,
-} from "./colour-schemes";
+import { colourIds } from "./colour-schemes";
 import isTrackedRide from "./is-tracked-ride";
-import { ForceThresholds } from "./force-thresholds";
+import { ForceThresholds, ForceThresholdsModel } from "./force-thresholds";
 import { VisualisationMode } from "./visualisation-mode";
 import openVisualiseWindow from "./open-visualise-window";
-import { ForceColours } from "./force-colours";
+import { ForceColours, ForceColoursModel } from "./force-colours";
 import onNextTick from "./on-next-tick";
 
 const LOW_G_COLOUR = colourIds.brightGreen;
@@ -45,38 +44,22 @@ export default function openMainWindow() {
     VisualisationMode.Lateral,
   ];
 
-  const model = {
-    selectedRide: store<Ride | null>(initialRide),
-    visualisationMode: store<VisualisationMode>(VisualisationMode.All),
-    colours: <ForceColours>{
-      low: LOW_G_COLOUR,
-      moderate: MODERATE_G_COLOUR,
-      excessive: EXCESSIVE_G_COLOUR,
-    },
-    thresholds: <ForceThresholds>{
-      moderate: {
-        lateral: MODERATE_LATERAL_G,
-        positiveVertical: MODERATE_POSITIVE_VERTICAL_G,
-        negativeVertical: MODERATE_NEGATIVE_VERTICAL_G,
-      },
-      excessive: {
-        lateral: EXCESSIVE_LATERAL_G,
-        positiveVertical: EXCESSIVE_POSITIVE_VERTICAL_G,
-        negativeVertical: EXCESSIVE_NEGATIVE_VERTICAL_G,
-      },
-    },
-  };
+  const model = getModel(initialRide, null, null);
 
-  model.selectedRide.subscribe((ride) => {
-    if (ride != null) {
-      saveColourSchemes(ride);
-    }
-  });
+  const disableLaterals = compute(
+    model.visualisationMode,
+    (visualisationMode) => visualisationMode === VisualisationMode.Vertical
+  );
+
+  const disableVerticals = compute(
+    model.visualisationMode,
+    (visualisationMode) => visualisationMode === VisualisationMode.Lateral
+  );
 
   const mainWindow = window({
     title: "Force visualiser",
     width: 280,
-    height: 280,
+    height: "auto",
     content: [
       label({
         text: "Select a tracked ride",
@@ -85,10 +68,6 @@ export default function openMainWindow() {
         items: trackedRides.map((ride) => ride.name),
         selectedIndex: 0,
         onChange: (i) => {
-          const selectedRide = model.selectedRide.get();
-          if (selectedRide != null) {
-            restoreColourSchemes(selectedRide);
-          }
           model.selectedRide.set(trackedRides[i]);
         },
       }),
@@ -101,29 +80,26 @@ export default function openMainWindow() {
       }),
       groupbox({
         text: "Colours",
-        direction: LayoutDirection.Horizontal,
+        direction: LayoutDirection.Vertical,
         content: [
-          colourPicker({
-            onChange: (colour: number) => {
-              model.colours.low = colour;
-            },
-            colour: model.colours.low,
+          horizontal([
+            colourPicker({
+              colour: twoway(model.colours.low),
+            }),
+            label({ text: "Low" }),
+            colourPicker({
+              colour: twoway(model.colours.moderate),
+            }),
+            label({ text: "Moderate" }),
+            colourPicker({
+              colour: twoway(model.colours.excessive),
+            }),
+            label({ text: "Excessive" }),
+          ]),
+          checkbox({
+            text: "Hide supports",
+            isChecked: twoway(model.colours.hideSupports),
           }),
-          label({ text: "Low" }),
-          colourPicker({
-            onChange: (colour: number) => {
-              model.colours.moderate = colour;
-            },
-            colour: model.colours.moderate,
-          }),
-          label({ text: "Moderate" }),
-          colourPicker({
-            onChange: (colour: number) => {
-              model.colours.excessive = colour;
-            },
-            colour: model.colours.excessive,
-          }),
-          label({ text: "Excessive" }),
         ],
       }),
       groupbox({
@@ -132,166 +108,100 @@ export default function openMainWindow() {
           horizontal([
             label({
               text: "+/- Lateral",
-              disabled: compute(
-                model.visualisationMode,
-                (visualisationMode) =>
-                  visualisationMode === VisualisationMode.Vertical
-              ),
+              disabled: disableLaterals,
             }),
             label({
               text: "+ Vertical",
-              disabled: compute(
-                model.visualisationMode,
-                (visualisationMode) =>
-                  visualisationMode === VisualisationMode.Lateral
-              ),
+              disabled: disableVerticals,
             }),
             label({
               text: "- Vertical",
-              disabled: compute(
-                model.visualisationMode,
-                (visualisationMode) =>
-                  visualisationMode === VisualisationMode.Lateral
-              ),
+              disabled: disableVerticals,
             }),
           ]),
           horizontal([
             spinner({
-              onChange: (number: number) => {
-                model.thresholds.moderate.lateral = number;
-              },
-              value: model.thresholds.moderate.lateral,
+              value: twoway(model.thresholds.moderate.lateral),
               step: 10,
               minimum: 0,
               maximum: 1000,
-              format: (value) => (value / 100).toFixed(1) + "G",
-              disabled: compute(
-                model.visualisationMode,
-                (visualisationMode) =>
-                  visualisationMode === VisualisationMode.Vertical
-              ),
+              format: formatGForce,
+              disabled: disableLaterals,
             }),
             spinner({
-              onChange: (number: number) => {
-                model.thresholds.moderate.positiveVertical = number;
-              },
-              value: model.thresholds.moderate.positiveVertical,
+              value: twoway(model.thresholds.moderate.positiveVertical),
               step: 10,
               minimum: 0,
               maximum: 1000,
-              format: (value) => (value / 100).toFixed(1) + "G",
-              disabled: compute(
-                model.visualisationMode,
-                (visualisationMode) =>
-                  visualisationMode === VisualisationMode.Lateral
-              ),
+              format: formatGForce,
+              disabled: disableVerticals,
             }),
             spinner({
-              onChange: (number: number) => {
-                model.thresholds.moderate.negativeVertical = number;
-              },
-              value: model.thresholds.moderate.negativeVertical,
+              value: twoway(model.thresholds.moderate.negativeVertical),
               step: 10,
               minimum: -1000,
               maximum: 0,
-              format: (value) => (value / 100).toFixed(1) + "G",
-              disabled: compute(
-                model.visualisationMode,
-                (visualisationMode) =>
-                  visualisationMode === VisualisationMode.Lateral
-              ),
+              format: formatGForce,
+              disabled: disableVerticals,
             }),
           ]),
         ],
       }),
-
       groupbox({
         text: "Excessive force thresholds",
         content: [
           horizontal([
             label({
               text: "+/- Lateral",
-              disabled: compute(
-                model.visualisationMode,
-                (visualisationMode) =>
-                  visualisationMode === VisualisationMode.Vertical
-              ),
+              disabled: disableLaterals,
             }),
             label({
               text: "+ Vertical",
-              disabled: compute(
-                model.visualisationMode,
-                (visualisationMode) =>
-                  visualisationMode === VisualisationMode.Lateral
-              ),
+              disabled: disableVerticals,
             }),
             label({
               text: "- Vertical",
-              disabled: compute(
-                model.visualisationMode,
-                (visualisationMode) =>
-                  visualisationMode === VisualisationMode.Lateral
-              ),
+              disabled: disableVerticals,
             }),
           ]),
           horizontal([
             spinner({
-              onChange: (number: number) => {
-                model.thresholds.excessive.lateral = number;
-              },
-              value: model.thresholds.excessive.lateral,
+              value: twoway(model.thresholds.excessive.lateral),
               step: 10,
               minimum: 0,
               maximum: 1000,
-              format: (value) => (value / 100).toFixed(1) + "G",
-              disabled: compute(
-                model.visualisationMode,
-                (visualisationMode) =>
-                  visualisationMode === VisualisationMode.Vertical
-              ),
+              format: formatGForce,
+              disabled: disableLaterals,
             }),
             spinner({
-              onChange: (number: number) => {
-                model.thresholds.excessive.positiveVertical = number;
-              },
-              value: model.thresholds.excessive.positiveVertical,
+              value: twoway(model.thresholds.excessive.positiveVertical),
               step: 10,
               minimum: 0,
               maximum: 1000,
-              format: (value) => (value / 100).toFixed(1) + "G",
-              disabled: compute(
-                model.visualisationMode,
-                (visualisationMode) =>
-                  visualisationMode === VisualisationMode.Lateral
-              ),
+              format: formatGForce,
+              disabled: disableVerticals,
             }),
             spinner({
-              onChange: (number: number) => {
-                model.thresholds.excessive.negativeVertical = number;
-              },
-              value: model.thresholds.excessive.negativeVertical,
+              value: twoway(model.thresholds.excessive.negativeVertical),
               step: 10,
               minimum: -1000,
               maximum: 0,
-              format: (value) => (value / 100).toFixed(1) + "G",
-              disabled: compute(
-                model.visualisationMode,
-                (visualisationMode) =>
-                  visualisationMode === VisualisationMode.Lateral
-              ),
+              format: formatGForce,
+              disabled: disableVerticals,
             }),
           ]),
         ],
       }),
       button({
         text: "Visualise forces",
+        height: 42,
         onClick: () => {
           mainWindow.close();
           onNextTick(() =>
             openVisualiseWindow(
               model.selectedRide.get() as Ride,
-              model.colours,
-              model.thresholds,
+              forceColoursModelToForceColours(model.colours),
+              forceThresholdsModelToForceThresholds(model.thresholds),
               model.visualisationMode.get()
             )
           );
@@ -301,8 +211,118 @@ export default function openMainWindow() {
           (selectedRide) => selectedRide == null
         ),
       }),
+      button({
+        text: "Reset to defaults",
+        height: 21,
+        onClick: () => {
+          resetModel(model);
+        },
+      }),
     ],
   });
 
   mainWindow.open();
+}
+
+interface MainWindowModel {
+  selectedRide: WritableStore<Ride | null>;
+  visualisationMode: WritableStore<VisualisationMode>;
+  colours: ForceColoursModel;
+  thresholds: ForceThresholdsModel;
+}
+
+function getModel(
+  initialRide: Ride | null,
+  savedColours: ForceColours | null,
+  savedThresholds: ForceThresholds | null
+): MainWindowModel {
+  return {
+    selectedRide: store<Ride | null>(initialRide),
+    visualisationMode: store<VisualisationMode>(VisualisationMode.All),
+    colours: <ForceColoursModel>{
+      low: store<number>(savedColours?.low ?? LOW_G_COLOUR),
+      moderate: store<number>(savedColours?.moderate ?? MODERATE_G_COLOUR),
+      excessive: store<number>(savedColours?.excessive ?? EXCESSIVE_G_COLOUR),
+      hideSupports: store<boolean>(savedColours?.hideSupports ?? true),
+    },
+    thresholds: <ForceThresholdsModel>{
+      moderate: {
+        lateral: store<number>(
+          savedThresholds?.moderate.lateral ?? MODERATE_LATERAL_G
+        ),
+        positiveVertical: store<number>(
+          savedThresholds?.moderate.positiveVertical ??
+            MODERATE_POSITIVE_VERTICAL_G
+        ),
+        negativeVertical: store<number>(
+          savedThresholds?.moderate.negativeVertical ??
+            MODERATE_NEGATIVE_VERTICAL_G
+        ),
+      },
+      excessive: {
+        lateral: store<number>(
+          savedThresholds?.excessive.lateral ?? EXCESSIVE_LATERAL_G
+        ),
+        positiveVertical: store<number>(
+          savedThresholds?.excessive.positiveVertical ??
+            EXCESSIVE_POSITIVE_VERTICAL_G
+        ),
+        negativeVertical: store<number>(
+          savedThresholds?.excessive.negativeVertical ??
+            EXCESSIVE_NEGATIVE_VERTICAL_G
+        ),
+      },
+    },
+  };
+}
+
+function resetModel(model: MainWindowModel) {
+  model.colours.low.set(LOW_G_COLOUR);
+  model.colours.moderate.set(MODERATE_G_COLOUR);
+  model.colours.excessive.set(EXCESSIVE_G_COLOUR);
+  model.colours.hideSupports.set(true);
+
+  model.thresholds.moderate.lateral.set(MODERATE_LATERAL_G);
+  model.thresholds.moderate.positiveVertical.set(MODERATE_POSITIVE_VERTICAL_G);
+  model.thresholds.moderate.negativeVertical.set(MODERATE_NEGATIVE_VERTICAL_G);
+
+  model.thresholds.excessive.lateral.set(EXCESSIVE_LATERAL_G);
+  model.thresholds.excessive.positiveVertical.set(
+    EXCESSIVE_POSITIVE_VERTICAL_G
+  );
+  model.thresholds.excessive.negativeVertical.set(
+    EXCESSIVE_NEGATIVE_VERTICAL_G
+  );
+}
+
+function forceColoursModelToForceColours(
+  model: ForceColoursModel
+): ForceColours {
+  return {
+    low: model.low.get(),
+    moderate: model.moderate.get(),
+    excessive: model.excessive.get(),
+    hideSupports: model.hideSupports.get(),
+  };
+}
+
+function forceThresholdsModelToForceThresholds(
+  model: ForceThresholdsModel
+): ForceThresholds {
+  return {
+    moderate: {
+      lateral: model.moderate.lateral.get(),
+      positiveVertical: model.moderate.positiveVertical.get(),
+      negativeVertical: model.moderate.negativeVertical.get(),
+    },
+    excessive: {
+      lateral: model.excessive.lateral.get(),
+      positiveVertical: model.excessive.positiveVertical.get(),
+      negativeVertical: model.excessive.negativeVertical.get(),
+    },
+  };
+}
+
+function formatGForce(value: number): string {
+  return (value / 100).toFixed(1) + "G";
 }

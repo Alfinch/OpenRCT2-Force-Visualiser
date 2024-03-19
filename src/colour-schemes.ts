@@ -64,12 +64,14 @@ export function overrideColourSchemes(ride: Ride, colours: ForceColours) {
       type: 1,
       value: trackColours[i],
     });
-    context.executeAction("ridesetappearance", {
-      ride: ride.id,
-      index: i,
-      type: 2,
-      value: colourIds.transparent,
-    });
+    if (colours.hideSupports) {
+      context.executeAction("ridesetappearance", {
+        ride: ride.id,
+        index: i,
+        type: 2,
+        value: colourIds.transparent,
+      });
+    }
   }
 }
 
