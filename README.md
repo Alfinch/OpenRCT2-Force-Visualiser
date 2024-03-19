@@ -9,12 +9,14 @@ A plugin for OpenRCT2 which visualises G forces of tracked rides by colouring th
 - Choose a ride you'd like to visualise forces for
 - Click "Visualise forces"!
 
-[See a video of the plugin in use](https://youtu.be/VpuzVY84NhY)
-
-# Screenshots
+## Screenshots
 
 ![A screenshot of the plugin window open, showing the configurable settings](https://github.com/Alfinch/OpenRCT2-Force-Visualiser/blob/main/assets/Screenshot_1.png?raw=true)
 ![A screenshot of the plugin visualising forces](https://github.com/Alfinch/OpenRCT2-Force-Visualiser/blob/main/assets/Screenshot_2.png?raw=true)
+
+## Video
+
+[![Thumbnail of a video of the plugin in use](https://img.youtube.com/vi/53lJh-LHv_U/0.jpg)](https://www.youtube.com/watch?v=53lJh-LHv_U)
 
 ## Thanks
 
