@@ -16,11 +16,18 @@ import {
 } from "openrct2-flexui";
 import { colourIds } from "./colour-schemes";
 import isTrackedRide from "./is-tracked-ride";
-import { ForceThresholds, ForceThresholdsModel } from "./force-thresholds";
+import {
+  ForceThreshold,
+  ForceThresholds,
+  ForceThresholdsModel,
+} from "./force-thresholds";
 import { VisualisationMode } from "./visualisation-mode";
 import openVisualiseWindow from "./open-visualise-window";
 import { ForceColours, ForceColoursModel } from "./force-colours";
 import onNextTick from "./on-next-tick";
+
+const SAVED_FORCE_COLOURS_KEY = "forceVisualiser.forceColours";
+const SAVED_FORCE_THRESHOLDS_KEY = "forceVisualiser.forceThresholds";
 
 const LOW_G_COLOUR = colourIds.brightGreen;
 const MODERATE_G_COLOUR = colourIds.yellow;
@@ -44,7 +51,55 @@ export default function openMainWindow() {
     VisualisationMode.Lateral,
   ];
 
-  const model = getModel(initialRide, null, null);
+  const model = getModel(initialRide);
+
+  compute(
+    model.colours.low,
+    model.colours.moderate,
+    model.colours.excessive,
+    model.colours.hideSupports,
+    (low, moderate, excessive, hideSupports) => {
+      const colours: ForceColours = {
+        low,
+        moderate,
+        excessive,
+        hideSupports,
+      };
+      context.sharedStorage.set(SAVED_FORCE_COLOURS_KEY, colours);
+    }
+  );
+
+  compute(
+    compute(
+      model.thresholds.moderate.lateral,
+      model.thresholds.moderate.positiveVertical,
+      model.thresholds.moderate.negativeVertical,
+      (lateral, positiveVertical, negativeVertical) =>
+        <ForceThreshold>{
+          lateral,
+          positiveVertical,
+          negativeVertical,
+        }
+    ),
+    compute(
+      model.thresholds.excessive.lateral,
+      model.thresholds.excessive.positiveVertical,
+      model.thresholds.excessive.negativeVertical,
+      (lateral, positiveVertical, negativeVertical) =>
+        <ForceThreshold>{
+          lateral,
+          positiveVertical,
+          negativeVertical,
+        }
+    ),
+    (moderate, excessive) => {
+      const thresholds: ForceThresholds = {
+        moderate,
+        excessive,
+      };
+      context.sharedStorage.set(SAVED_FORCE_THRESHOLDS_KEY, thresholds);
+    }
+  );
 
   const disableLaterals = compute(
     model.visualisationMode,
@@ -231,11 +286,14 @@ interface MainWindowModel {
   thresholds: ForceThresholdsModel;
 }
 
-function getModel(
-  initialRide: Ride | null,
-  savedColours: ForceColours | null,
-  savedThresholds: ForceThresholds | null
-): MainWindowModel {
+function getModel(initialRide: Ride | null): MainWindowModel {
+  const savedColours = context.sharedStorage.has(SAVED_FORCE_COLOURS_KEY)
+    ? context.sharedStorage.get<ForceColours>(SAVED_FORCE_COLOURS_KEY)
+    : null;
+  const savedThresholds = context.sharedStorage.has(SAVED_FORCE_THRESHOLDS_KEY)
+    ? context.sharedStorage.get<ForceThresholds>(SAVED_FORCE_THRESHOLDS_KEY)
+    : null;
+
   return {
     selectedRide: store<Ride | null>(initialRide),
     visualisationMode: store<VisualisationMode>(VisualisationMode.All),
