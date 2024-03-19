@@ -2,7 +2,7 @@ import openMainWindow from "./open-main-window";
 
 registerPlugin({
   name: "Force visualiser",
-  version: "1.0",
+  version: "1.1.0",
   authors: ["Alfie Woodland"],
   type: "local",
   licence: "MIT",

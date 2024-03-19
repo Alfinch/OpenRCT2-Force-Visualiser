@@ -1,9 +1,6 @@
 import resolve from "@rollup/plugin-node-resolve";
 import terser from "@rollup/plugin-terser";
 import typescript from "@rollup/plugin-typescript";
-import { exec } from "child_process";
-import { homedir } from "os";
-import { promisify } from "util";
 
 const options = {
   /**
@@ -34,7 +31,23 @@ async function getOutput() {
     return `./dist/${options.filename}`;
   }
 
-  return `C:/Users/alfie/OneDrive/Documents/OpenRCT2/plugin/${options.filename}`;
+  const platform = process.platform;
+  const pluginPath = `OpenRCT2/plugin/${options.filename}`;
+
+  if (platform === "win32") {
+    // Windows
+    const { stdout } = await promisify(exec)(
+      "powershell -command \"[Environment]::GetFolderPath('MyDocuments')\""
+    );
+    return `${stdout.trim()}/${pluginPath}`;
+  } else if (platform === "darwin") {
+    // MacOS
+    return `${homedir()}/Library/Application Support/${pluginPath}`;
+  } // Linux
+  else {
+    const configFolder = process.env.XDG_CONFIG_HOME || `${homedir()}/.config`;
+    return `${configFolder}/${pluginPath}`;
+  }
 }
 
 /**
