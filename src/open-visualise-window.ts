@@ -1,4 +1,12 @@
-import { window, label, viewport } from "openrct2-flexui";
+import {
+  window,
+  label,
+  viewport,
+  checkbox,
+  twoway,
+  store,
+  compute,
+} from "openrct2-flexui";
 import { ForceThresholds } from "./force-thresholds";
 import { VisualisationMode } from "./visualisation-mode";
 import visualiseForces from "./visualise-forces";
@@ -31,18 +39,28 @@ export default function openVisualiseWindow(
     }
   );
 
+  const checked = store(true);
+
   const visualiseWindow = window({
     title: "Force visualiser",
     width: 280,
-    height: 210,
+    height: "auto",
     content: [
       label({
         text: `Visualising ${lowercaseFirstLetter(visualisationMode)} for ${
           ride.name
         }`,
       }),
+      checkbox({
+        text: "Show viewport",
+        isChecked: twoway(checked),
+      }),
       viewport({
         target: ride.vehicles[0],
+        visibility: compute(checked, (checked) =>
+          checked ? "visible" : "none"
+        ),
+        height: 210,
       }),
     ],
     onClose: () => {
