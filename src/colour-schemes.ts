@@ -64,14 +64,12 @@ export function overrideColourSchemes(ride: Ride, colours: ForceColours) {
       type: 1,
       value: trackColours[i],
     });
-    if (colours.hideSupports) {
-      context.executeAction("ridesetappearance", {
-        ride: ride.id,
-        index: i,
-        type: 2,
-        value: colourIds.transparent,
-      });
-    }
+    context.executeAction("ridesetappearance", {
+      ride: ride.id,
+      index: i,
+      type: 2,
+      value: colours.hideSupports ? colourIds.transparent : colourIds.grey,
+    });
   }
 }
 
@@ -90,7 +88,8 @@ export function removeAlternateColourSchemes(ride: Ride) {
  */
 export function restoreColourSchemes(ride: Ride) {
   const saved = savedColourSchemes[ride.id];
-  if (!saved) {
+  const rideExists = map.getRide(ride.id) !== null;
+  if (!saved || !rideExists) {
     return;
   }
   savedColourSchemes[ride.id] = null;
