@@ -1,6 +1,13 @@
+/**
+ * Perform an action on the next game tick, or on the next event loop if the game is paused.
+ * */
 export default function onNextTick(action: () => void) {
-  const interval = context.subscribe("interval.tick", () => {
+  const handler = () => {
     action();
-    interval.dispose();
-  });
+    tickInterval.dispose();
+    context.clearTimeout(timeout);
+  };
+
+  const tickInterval = context.subscribe("interval.tick", handler);
+  const timeout = context.setTimeout(handler, 0);
 }

@@ -13,11 +13,22 @@ export default function openVisualiseWindow(
   thresholds: ForceThresholds,
   visualisationMode: VisualisationMode
 ) {
+  let isClosed = false;
+
   const interval = visualiseForces(
     ride,
     colours,
     thresholds,
     visualisationMode
+  );
+
+  const eventListener = context.subscribe(
+    "action.execute",
+    (e: GameActionEventArgs) => {
+      if (e.action === "ridedemolish") {
+        visualiseWindow.close();
+      }
+    }
   );
 
   const visualiseWindow = window({
@@ -35,8 +46,15 @@ export default function openVisualiseWindow(
       }),
     ],
     onClose: () => {
+      if (isClosed) {
+        return;
+      }
+
       interval.dispose();
+      eventListener.dispose();
       onNextTick(() => openMainWindow());
+
+      isClosed = true;
     },
   });
 
