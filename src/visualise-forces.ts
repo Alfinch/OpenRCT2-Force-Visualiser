@@ -121,7 +121,7 @@ export default function visualiseForces(
         .map((elementVector) =>
           getTrackElementCoords(trackIterator.position, elementVector)
         )
-        .map((coords) => getTrackElementsAtPosition(coords))
+        .map((coords) => getTrackElementsAtPosition(coords, ride.id))
         .reduce((acc, val) => acc.concat(val), []);
 
       trackElements.forEach((element) => (element.colourScheme = forceLevel));

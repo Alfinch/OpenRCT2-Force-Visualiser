@@ -4,11 +4,13 @@
  * @returns The track element at the specified position
  */
 export default function getTrackElementsAtPosition(
-  position: CoordsXYZ
+  position: CoordsXYZ,
+  rideId: number
 ): TrackElement[] {
   return map
     .getTile(position.x / 32, position.y / 32)
     .elements.filter(
-      (e): e is TrackElement => e.baseZ === position.z && e.type === "track"
+      (e): e is TrackElement =>
+        e.baseZ === position.z && e.type === "track" && e.ride === rideId
     );
 }
