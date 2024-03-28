@@ -1,4 +1,4 @@
-export default interface TrackElementPosition {
+export interface TrackElementPosition {
   position: CoordsXYZ;
   element: TrackElement;
 }

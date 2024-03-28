@@ -1,4 +1,4 @@
-import openMainWindow from "./open-main-window";
+import { openMainWindow } from "./main-window/open-main-window";
 
 registerPlugin({
   name: "Force visualiser",

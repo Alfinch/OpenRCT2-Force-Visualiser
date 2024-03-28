@@ -7,15 +7,12 @@ import {
   store,
   compute,
 } from "openrct2-flexui";
-import { ForceThresholds } from "./force-thresholds";
-import { VisualisationMode } from "./visualisation-mode";
-import visualiseForces from "./visualise-forces";
-import openMainWindow from "./open-main-window";
-import { ForceColours } from "./force-colours";
-import onNextTick from "./on-next-tick";
-import lowercaseFirstLetter from "./lowercase-first-letter";
+import { lowercaseFirstLetter, onNextTick } from "../helpers/misc";
+import { openMainWindow } from "../main-window";
+import { ForceColours, ForceThresholds, VisualisationMode } from "../models";
+import { visualiseForces } from "../visualiser";
 
-export default function openVisualiseWindow(
+export function openVisualiseWindow(
   ride: Ride,
   colours: ForceColours,
   thresholds: ForceThresholds,

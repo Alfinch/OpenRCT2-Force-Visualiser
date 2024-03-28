@@ -4,7 +4,7 @@
  * @param elementVector The relative vector pointing to the track element
  * @returns The global coordinates of the track element
  */
-export default function getTrackElementCoords(
+export function getTrackElementCoords(
   segmentCoords: CoordsXYZD,
   elementVector: CoordsXYZ
 ): CoordsXYZ {

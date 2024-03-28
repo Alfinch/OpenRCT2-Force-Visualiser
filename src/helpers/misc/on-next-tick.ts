@@ -1,7 +1,8 @@
 /**
  * Perform an action on the next game tick, or on the next event loop if the game is paused.
+ * @param action The action to perform.
  * */
-export default function onNextTick(action: () => void) {
+export function onNextTick(action: () => void): void {
   const handler = () => {
     action();
     tickInterval.dispose();

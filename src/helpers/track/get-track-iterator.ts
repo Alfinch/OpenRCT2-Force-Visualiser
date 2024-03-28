@@ -1,12 +1,12 @@
-import getIndexOfTrackElement from "./get-index-of-track-element";
-import isTrackedRide from "./is-tracked-ride";
+import { getIndexOfTrackElement } from "./get-index-of-track-element";
+import { isTrackedRide } from "./is-tracked-ride";
 
 /**
  * Get the track iterator for a ride
  * @param ride The ride to get the track iterator for
  * @returns The track iterator for the ride
  */
-export default function getTrackIterator(ride: Ride): TrackIterator | null {
+export function getTrackIterator(ride: Ride): TrackIterator | null {
   if (isTrackedRide(ride) === false) {
     return null;
   }

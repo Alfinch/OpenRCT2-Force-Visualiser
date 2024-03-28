@@ -3,6 +3,6 @@
  * @param position The position to convert
  * @returns The string key
  */
-export default function positionToKey(position: CoordsXYZ) {
+export function positionToKey(position: CoordsXYZ) {
     return `${position.x},${position.y},${position.z}`;
   }

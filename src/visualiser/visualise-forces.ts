@@ -1,67 +1,20 @@
-import positionToKey from "./position-to-key";
-import getIndexOfTrackElement from "./get-index-of-track-element";
-import getTrackElementCoords from "./get-track-element-coords";
-import getTrackElementsAtPosition from "./get-track-elements-at-position";
-import { ForceThresholds } from "./force-thresholds";
-import { VisualisationMode } from "./visualisation-mode";
+import { positionToKey } from "../helpers/misc";
 import {
+  saveColourSchemes,
   overrideColourSchemes,
   removeAlternateColourSchemes,
   restoreColourSchemes,
-  saveColourSchemes,
-} from "./colour-schemes";
-import { ForceColours } from "./force-colours";
+} from "../helpers/paint";
+import {
+  getIndexOfTrackElement,
+  getTrackElementCoords,
+  getTrackElementsAtPosition,
+} from "../helpers/track";
+import { ForceColours, ForceThresholds, VisualisationMode } from "../models";
+import { ForceLevel } from "./force-level";
+import { getForceLevel } from "./get-force-level";
 
-function getForceLevel(
-  force: GForces,
-  thresholds: ForceThresholds,
-  visualisationMode: VisualisationMode
-) {
-  const includeLaterals =
-    visualisationMode === VisualisationMode.All ||
-    visualisationMode === VisualisationMode.Lateral;
-  const includeVerticals =
-    visualisationMode === VisualisationMode.All ||
-    visualisationMode === VisualisationMode.Vertical;
-
-  let forceLevel = 1; // 1 = low, 2 = moderate, 3 = excessive
-
-  if (
-    includeLaterals &&
-    (force.lateralG > thresholds.moderate.lateral ||
-      force.lateralG < -thresholds.moderate.lateral)
-  ) {
-    forceLevel = 2;
-  }
-
-  if (
-    includeVerticals &&
-    (force.verticalG > thresholds.moderate.positiveVertical ||
-      force.verticalG < thresholds.moderate.negativeVertical)
-  ) {
-    forceLevel = 2;
-  }
-
-  if (
-    includeLaterals &&
-    (force.lateralG > thresholds.excessive.lateral ||
-      force.lateralG < -thresholds.excessive.lateral)
-  ) {
-    forceLevel = 3;
-  }
-
-  if (
-    includeVerticals &&
-    (force.verticalG > thresholds.excessive.positiveVertical ||
-      force.verticalG < thresholds.excessive.negativeVertical)
-  ) {
-    forceLevel = 3;
-  }
-
-  return forceLevel;
-}
-
-export default function visualiseForces(
+export function visualiseForces(
   ride: Ride,
   colours: ForceColours,
   thresholds: ForceThresholds,
@@ -71,7 +24,7 @@ export default function visualiseForces(
   overrideColourSchemes(ride, colours);
   removeAlternateColourSchemes(ride);
 
-  let trackSegmentForces: { [key: string]: number } = {};
+  let trackSegmentForces: { [key: string]: ForceLevel } = {};
 
   // Get all lead cars on the ride
   const zeroCars = map

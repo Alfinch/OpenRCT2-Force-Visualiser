@@ -3,7 +3,7 @@
  * @param position The global coordinates of the track element
  * @returns The track element at the specified position
  */
-export default function getTrackElementsAtPosition(
+export function getTrackElementsAtPosition(
   position: CoordsXYZ,
   rideId: number
 ): TrackElement[] {

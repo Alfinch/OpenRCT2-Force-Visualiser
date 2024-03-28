@@ -1,13 +1,11 @@
-import TrackElementPosition from "./track-element-position";
+import { TrackElementPosition } from "./track-element-position";
 
 /**
  * Get all track elements for a given tracked ride
  * @param ride The ride to get the track elements for
  * @returns The track elements for the ride
  */
-export default function getRideTrackElements(
-  ride: Ride
-): TrackElementPosition[] {
+export function getRideTrackElements(ride: Ride): TrackElementPosition[] {
   const elements: TrackElementPosition[] = [];
 
   // Iterate over all tiles in the map
