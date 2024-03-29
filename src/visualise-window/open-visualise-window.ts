@@ -7,25 +7,15 @@ import {
   store,
   compute,
 } from "openrct2-flexui";
-import { lowercaseFirstLetter, onNextTick } from "../helpers/misc";
+import { getTrain, lowercaseFirstLetter, onNextTick } from "../helpers/misc";
 import { openMainWindow } from "../main-window";
-import { ForceColours, ForceThresholds, VisualisationMode } from "../models";
+import { VisualisationSettings } from "../models";
 import { visualiseForces } from "../visualiser";
 
-export function openVisualiseWindow(
-  ride: Ride,
-  colours: ForceColours,
-  thresholds: ForceThresholds,
-  visualisationMode: VisualisationMode
-) {
+export function openVisualiseWindow(settings: VisualisationSettings) {
   let isClosed = false;
 
-  const interval = visualiseForces(
-    ride,
-    colours,
-    thresholds,
-    visualisationMode
-  );
+  const interval = visualiseForces(settings);
 
   const eventListener = context.subscribe(
     "action.execute",
@@ -44,16 +34,25 @@ export function openVisualiseWindow(
     height: "auto",
     content: [
       label({
-        text: `Visualising ${lowercaseFirstLetter(visualisationMode)} for ${
-          ride.name
-        }`,
+        text: `${settings.selectedRide.name}`,
+      }),
+      label({
+        text: `Visualising ${lowercaseFirstLetter(
+          settings.visualisationMode
+        )}` /* for ${
+          settings.selectedCar === -1
+            ? "all cars"
+            : "car " + (settings.selectedCar + 1).toString(10)
+        }`*/,
       }),
       checkbox({
         text: "Show viewport",
         isChecked: twoway(checked),
       }),
       viewport({
-        target: ride.vehicles[0],
+        target: getTrain(settings.selectedRide.vehicles[0])[
+          settings.selectedCar === -1 ? 0 : settings.selectedCar
+        ].id,
         visibility: compute(checked, (checked) =>
           checked ? "visible" : "none"
         ),

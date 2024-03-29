@@ -1,4 +1,4 @@
-import { positionToKey } from "../helpers/misc";
+import { formatGForce, getTrain, positionToKey } from "../helpers/misc";
 import {
   saveColourSchemes,
   overrideColourSchemes,
@@ -10,31 +10,33 @@ import {
   getTrackElementCoords,
   getTrackElementsAtPosition,
 } from "../helpers/track";
-import { ForceColours, ForceThresholds, VisualisationMode } from "../models";
+import { VisualisationSettings } from "../models";
 import { ForceLevel } from "./force-level";
 import { getForceLevel } from "./get-force-level";
 
-export function visualiseForces(
-  ride: Ride,
-  colours: ForceColours,
-  thresholds: ForceThresholds,
-  visualisationMode: VisualisationMode
-): IDisposable {
-  saveColourSchemes(ride);
-  overrideColourSchemes(ride, colours);
-  removeAlternateColourSchemes(ride);
+export function visualiseForces(settings: VisualisationSettings): IDisposable {
+  saveColourSchemes(settings.selectedRide);
+  overrideColourSchemes(settings.selectedRide, settings.colours);
+  removeAlternateColourSchemes(settings.selectedRide);
 
   let trackSegmentForces: { [key: string]: ForceLevel } = {};
 
-  // Get all lead cars on the ride
-  const zeroCars = map
-    .getAllEntities("car")
-    .filter((car) => car.id && ride.vehicles.indexOf(car.id) !== -1);
+  // Get all selected cars on the ride
+  const cars = settings.selectedRide.vehicles
+    .map((zeroCarId) =>
+      settings.selectedCar === -1
+        ? getTrain(zeroCarId)
+        : [getTrain(zeroCarId)[settings.selectedCar]]
+    )
+    .reduce((acc, val) => acc.concat(val), []);
 
   const interval = context.subscribe("interval.tick", () => {
-    zeroCars.forEach((car) => {
-      const force = car.gForces;
-      let forceLevel = getForceLevel(force, thresholds, visualisationMode);
+    cars.forEach((car) => {
+      let forceLevel = getForceLevel(
+        car.gForces,
+        settings.thresholds,
+        settings.visualisationMode
+      );
 
       const key = positionToKey(car.trackLocation);
       let savedForceLevel = trackSegmentForces[key];
@@ -74,7 +76,9 @@ export function visualiseForces(
         .map((elementVector) =>
           getTrackElementCoords(trackIterator.position, elementVector)
         )
-        .map((coords) => getTrackElementsAtPosition(coords, ride.id))
+        .map((coords) =>
+          getTrackElementsAtPosition(coords, settings.selectedRide.id)
+        )
         .reduce((acc, val) => acc.concat(val), []);
 
       trackElements.forEach((element) => (element.colourScheme = forceLevel));
@@ -84,7 +88,7 @@ export function visualiseForces(
   return <IDisposable>{
     dispose() {
       interval.dispose();
-      restoreColourSchemes(ride);
+      restoreColourSchemes(settings.selectedRide);
     },
   };
 }

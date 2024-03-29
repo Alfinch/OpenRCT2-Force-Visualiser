@@ -1,30 +1,52 @@
 import { Store, WritableStore, compute, store } from "openrct2-flexui";
-import { VisualisationMode } from "../models";
-import { cloneDeep, merge } from "lodash-es";
-import { deepFreeze } from "../helpers/misc";
+import { VisualisationMode, VisualisationSettings } from "../models";
+import { cloneDeep, merge, range } from "lodash-es";
+import { deepFreeze, getRideCarCount } from "../helpers/misc";
 import { ForceColoursController } from "./force-colours-controller";
 import { ForceThresholdsController } from "./force-thresholds-controller";
-import { MainWindow } from "./main-window";
+import { isTrackedRide } from "../helpers/track";
 
-const defaultValues = deepFreeze(<MainWindow>{
-  selectedRide: null,
+const defaultValues = deepFreeze(<VisualisationSettings>{
   visualisationMode: VisualisationMode.All,
 });
 
 export class MainWindowController implements IDisposable {
-  selectedRide: WritableStore<Ride | null>;
+  trackedRides: WritableStore<Ride[]>;
+  trackedRideNames: Store<string[]>;
+  rideCarOptions: Store<string[]>;
+
+  selectedRideIndex: WritableStore<number>;
+  selectedRideCarIndex: WritableStore<number>;
   visualisationMode: WritableStore<VisualisationMode>;
   disableLaterals: Store<boolean>;
   disableVerticals: Store<boolean>;
+
   colours: ForceColoursController;
   thresholds: ForceThresholdsController;
 
-  constructor(initialValues?: Partial<MainWindow>) {
-    let mainWindow: MainWindow = merge(cloneDeep(defaultValues), initialValues);
+  constructor(initialValues?: Partial<VisualisationSettings>) {
+    let settings: VisualisationSettings = merge(
+      cloneDeep(defaultValues),
+      initialValues
+    );
 
-    this.selectedRide = store<Ride | null>(mainWindow.selectedRide);
+    this.trackedRides = store(map.rides.filter(isTrackedRide));
+    this.trackedRideNames = compute(this.trackedRides, (rides) =>
+      rides.map((ride) => ride.name)
+    );
+
+    this.selectedRideIndex = store(this.indexOfRide(settings.selectedRide));
+
+    this.rideCarOptions = compute(this.selectedRideIndex, () =>
+      this.getCarOptions()
+    );
+
+    // Index 0 is "All cars", 1 is the first car, 2 is the second and so on
+    // Default to 1 so that the first car is selected
+    this.selectedRideCarIndex = store(1);
+
     this.visualisationMode = store<VisualisationMode>(
-      mainWindow.visualisationMode
+      settings.visualisationMode
     );
     this.disableLaterals = compute(
       this.visualisationMode,
@@ -35,13 +57,40 @@ export class MainWindowController implements IDisposable {
       (visualisationMode) => visualisationMode === VisualisationMode.Lateral
     );
 
-    this.colours = new ForceColoursController(mainWindow.colours);
-    this.thresholds = new ForceThresholdsController(mainWindow.thresholds);
+    this.colours = new ForceColoursController(settings.colours);
+    this.thresholds = new ForceThresholdsController(settings.thresholds);
   }
 
-  getModel(): MainWindow {
+  private indexOfRide(ride: Ride): number {
+    return this.trackedRides.get().indexOf(ride);
+  }
+
+  private getCarOptions(): string[] {
+    const selectedRide = this.getSelectedRide();
+    if (selectedRide == null) return [];
+    const carCount = getRideCarCount(selectedRide);
+    const options = range(1, carCount + 1).map((n) => `Car ${n}`);
+    options.unshift("All cars");
+    return options;
+  }
+
+  getSelectedRide(): Ride | null {
+    return this.trackedRides.get()[this.selectedRideIndex.get()] ?? null;
+  }
+
+  getModel(): VisualisationSettings {
+    const selectedRide = this.getSelectedRide();
+    if (selectedRide == null) {
+      throw new Error("No ride selected");
+    }
+
+    // Index 0 is "All cars", 1 is the first car, 2 is the second and so on
+    // We subtract 1 so that -1 means all cars and all other values are the car index
+    const selectedCar = this.selectedRideCarIndex.get() - 1;
+
     return {
-      selectedRide: this.selectedRide.get(),
+      selectedRide,
+      selectedCar,
       visualisationMode: this.visualisationMode.get(),
       colours: this.colours.getModel(),
       thresholds: this.thresholds.getModel(),
@@ -49,7 +98,7 @@ export class MainWindowController implements IDisposable {
   }
 
   reset(): void {
-    this.selectedRide.set(defaultValues.selectedRide as Ride | null);
+    this.selectedRideIndex.set(0);
     this.visualisationMode.set(defaultValues.visualisationMode);
     this.colours.reset();
     this.thresholds.reset();

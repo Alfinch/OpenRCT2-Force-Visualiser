@@ -13,7 +13,6 @@ import {
   window,
 } from "openrct2-flexui";
 import { formatGForce, onNextTick } from "../helpers/misc";
-import { isTrackedRide } from "../helpers/track";
 import { VisualisationMode } from "../models";
 import { openVisualiseWindow } from "../visualise-window";
 import { MainWindowController } from "./main-window-controller";
@@ -21,18 +20,13 @@ import { MainWindowController } from "./main-window-controller";
 export function openMainWindow() {
   let isClosed = false;
 
-  const trackedRides = map.rides.filter(isTrackedRide);
-  const initialRide = trackedRides.length > 0 ? trackedRides[0] : null;
-
   const visualisationModes = [
     VisualisationMode.All,
     VisualisationMode.Vertical,
     VisualisationMode.Lateral,
   ];
 
-  const controller = new MainWindowController({
-    selectedRide: initialRide,
-  });
+  const controller = new MainWindowController();
 
   const mainWindow = window({
     title: "Force visualiser",
@@ -43,12 +37,17 @@ export function openMainWindow() {
         text: "Select a tracked ride",
       }),
       dropdown({
-        items: trackedRides.map((ride) => ride.name),
-        selectedIndex: 0,
-        onChange: (i) => {
-          controller.selectedRide.set(trackedRides[i]);
-        },
+        items: controller.trackedRideNames,
+        selectedIndex: twoway(controller.selectedRideIndex),
       }),
+      // Which car's forces to visualise - disabled for now as this feature isn't working as intended
+      // dropdown({
+      //   items: controller.rideCarOptions,
+      //   selectedIndex: twoway(controller.selectedRideCarIndex),
+      //   disabled: compute(controller.selectedRideIndex, (index) => {
+      //     return index === -1;
+      //   }),
+      // }),
       dropdown({
         items: visualisationModes,
         selectedIndex: 0,
@@ -175,18 +174,11 @@ export function openMainWindow() {
         height: 42,
         onClick: () => {
           mainWindow.close();
-          onNextTick(() =>
-            openVisualiseWindow(
-              controller.selectedRide.get() as Ride,
-              controller.colours.getModel(),
-              controller.thresholds.getModel(),
-              controller.visualisationMode.get()
-            )
-          );
+          onNextTick(() => openVisualiseWindow(controller.getModel()));
         },
         disabled: compute(
-          controller.selectedRide,
-          (selectedRide) => selectedRide == null
+          controller.selectedRideIndex,
+          (selectedRide) => selectedRide === -1
         ),
       }),
       button({
