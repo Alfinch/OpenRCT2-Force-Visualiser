@@ -13,8 +13,6 @@ import { VisualisationSettings } from "../models";
 import { visualiseForces } from "../visualiser";
 
 export function openVisualiseWindow(settings: VisualisationSettings) {
-  let isClosed = false;
-
   const interval = visualiseForces(settings);
 
   const eventListener = context.subscribe(
@@ -60,15 +58,9 @@ export function openVisualiseWindow(settings: VisualisationSettings) {
       }),
     ],
     onClose: () => {
-      if (isClosed) {
-        return;
-      }
-
       interval.dispose();
       eventListener.dispose();
       onNextTick(() => openMainWindow());
-
-      isClosed = true;
     },
   });
 

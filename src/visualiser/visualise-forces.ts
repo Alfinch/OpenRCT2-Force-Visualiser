@@ -1,15 +1,12 @@
-import { formatGForce, getTrain, positionToKey } from "../helpers/misc";
+import { getTrain, positionToKey } from "../helpers/misc";
 import {
   saveColourSchemes,
   overrideColourSchemes,
   removeAlternateColourSchemes,
   restoreColourSchemes,
+  paintTrackSegment,
 } from "../helpers/paint";
-import {
-  getIndexOfTrackElement,
-  getTrackElementCoords,
-  getTrackElementsAtPosition,
-} from "../helpers/track";
+import { getIndexOfTrackElement } from "../helpers/track";
 import { VisualisationSettings } from "../models";
 import { ForceLevel } from "./force-level";
 import { getForceLevel } from "./get-force-level";
@@ -72,16 +69,11 @@ export function visualiseForces(settings: VisualisationSettings): IDisposable {
         );
       }
 
-      const trackElements = trackIterator.segment.elements
-        .map((elementVector) =>
-          getTrackElementCoords(trackIterator.position, elementVector)
-        )
-        .map((coords) =>
-          getTrackElementsAtPosition(coords, settings.selectedRide.id)
-        )
-        .reduce((acc, val) => acc.concat(val), []);
-
-      trackElements.forEach((element) => (element.colourScheme = forceLevel));
+      paintTrackSegment(
+        trackIterator.position,
+        trackIterator.segment,
+        forceLevel
+      );
     });
   });
 

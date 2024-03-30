@@ -18,8 +18,6 @@ import { openVisualiseWindow } from "../visualise-window";
 import { MainWindowController } from "./main-window-controller";
 
 export function openMainWindow() {
-  let isClosed = false;
-
   const visualisationModes = [
     VisualisationMode.All,
     VisualisationMode.Vertical,
@@ -190,13 +188,7 @@ export function openMainWindow() {
       }),
     ],
     onClose: () => {
-      if (isClosed) {
-        return;
-      }
-
       controller.dispose();
-
-      isClosed = true;
     },
   });
 
