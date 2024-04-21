@@ -9,12 +9,14 @@ import {
   horizontal,
   button,
 } from "openrct2-flexui";
-import { getTrain, lowercaseFirstLetter, onNextTick } from "../helpers/misc";
-import { openMainWindow } from "../main-window";
+import { getTrain, lowercaseFirstLetter } from "../helpers/misc";
 import { VisualisationSettings } from "../models";
 import { visualiseForces } from "../visualiser";
 
-export function openVisualiseWindow(settings: VisualisationSettings) {
+export function openVisualiseWindow(
+  settings: VisualisationSettings,
+  onClose: (settings: VisualisationSettings) => void
+) {
   const interval = visualiseForces(settings);
 
   const eventListener = context.subscribe(
@@ -113,7 +115,7 @@ export function openVisualiseWindow(settings: VisualisationSettings) {
     onClose: () => {
       interval.dispose();
       eventListener.dispose();
-      onNextTick(() => openMainWindow());
+      onClose(settings);
     },
   });
 

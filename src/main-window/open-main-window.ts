@@ -1,5 +1,6 @@
 import {
   LayoutDirection,
+  WindowTemplate,
   button,
   checkbox,
   colourPicker,
@@ -12,19 +13,28 @@ import {
   twoway,
   window,
 } from "openrct2-flexui";
-import { formatGForce, onNextTick } from "../helpers/misc";
-import { VisualisationMode } from "../models";
-import { openVisualiseWindow } from "../visualise-window";
+import { formatGForce } from "../helpers/misc";
+import { VisualisationMode, VisualisationSettings } from "../models";
 import { MainWindowController } from "./main-window-controller";
 
-export function openMainWindow() {
+export function openMainWindow(
+  visualisationSettings: VisualisationSettings | null,
+  onClose: (
+    window: WindowTemplate,
+    visualisationSettings: VisualisationSettings
+  ) => void,
+  onVisualise: (
+    window: WindowTemplate,
+    visualisationSettings: VisualisationSettings
+  ) => void
+) {
   const visualisationModes = [
     VisualisationMode.All,
     VisualisationMode.Vertical,
     VisualisationMode.Lateral,
   ];
 
-  const controller = new MainWindowController();
+  const controller = new MainWindowController(visualisationSettings ?? {});
 
   const mainWindow = window({
     title: "Force visualiser",
@@ -170,10 +180,7 @@ export function openMainWindow() {
       button({
         text: "Visualise forces",
         height: 42,
-        onClick: () => {
-          mainWindow.close();
-          onNextTick(() => openVisualiseWindow(controller.getModel()));
-        },
+        onClick: () => onVisualise(mainWindow, controller.getModel()),
         disabled: compute(
           controller.selectedRideIndex,
           (selectedRide) => selectedRide === -1
@@ -188,6 +195,7 @@ export function openMainWindow() {
       }),
     ],
     onClose: () => {
+      onClose(mainWindow, controller.getModel());
       controller.dispose();
     },
   });
