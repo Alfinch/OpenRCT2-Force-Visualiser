@@ -48,14 +48,6 @@ export function openMainWindow(
         items: controller.trackedRideNames,
         selectedIndex: twoway(controller.selectedRideIndex),
       }),
-      // Which car's forces to visualise - disabled for now as this feature isn't working as intended
-      // dropdown({
-      //   items: controller.rideCarOptions,
-      //   selectedIndex: twoway(controller.selectedRideCarIndex),
-      //   disabled: compute(controller.selectedRideIndex, (index) => {
-      //     return index === -1;
-      //   }),
-      // }),
       dropdown({
         items: visualisationModes,
         selectedIndex: 0,

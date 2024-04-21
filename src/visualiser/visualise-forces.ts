@@ -19,13 +19,9 @@ export function visualiseForces(settings: VisualisationSettings): IDisposable {
   let trackSegmentForces: { [key: string]: ForceLevel } = {};
 
   // Get all selected cars on the ride
-  const cars = settings.selectedRide.vehicles
-    .map((zeroCarId) =>
-      settings.selectedCar === -1
-        ? getTrain(zeroCarId)
-        : [getTrain(zeroCarId)[settings.selectedCar]]
-    )
-    .reduce((acc, val) => acc.concat(val), []);
+  const cars = settings.selectedRide.vehicles.map(
+    (zeroCarId) => getTrain(zeroCarId)[0]
+  );
 
   const interval = context.subscribe("interval.tick", () => {
     cars.forEach((car) => {

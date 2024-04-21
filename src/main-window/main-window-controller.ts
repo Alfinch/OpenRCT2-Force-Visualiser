@@ -1,7 +1,7 @@
 import { Store, WritableStore, compute, store } from "openrct2-flexui";
 import { VisualisationMode, VisualisationSettings } from "../models";
-import { cloneDeep, merge, range } from "lodash-es";
-import { deepFreeze, getRideCarCount } from "../helpers/misc";
+import { cloneDeep, merge } from "lodash-es";
+import { deepFreeze } from "../helpers/misc";
 import { ForceColoursController } from "./force-colours-controller";
 import { ForceThresholdsController } from "./force-thresholds-controller";
 import { isTrackedRide } from "../helpers/track";
@@ -13,10 +13,8 @@ const defaultValues = deepFreeze(<VisualisationSettings>{
 export class MainWindowController implements IDisposable {
   trackedRides: WritableStore<Ride[]>;
   trackedRideNames: Store<string[]>;
-  rideCarOptions: Store<string[]>;
 
   selectedRideIndex: WritableStore<number>;
-  selectedRideCarIndex: WritableStore<number>;
   visualisationMode: WritableStore<VisualisationMode>;
   disableLaterals: Store<boolean>;
   disableVerticals: Store<boolean>;
@@ -37,14 +35,6 @@ export class MainWindowController implements IDisposable {
 
     this.selectedRideIndex = store(this.indexOfRide(settings.selectedRide));
 
-    this.rideCarOptions = compute(this.selectedRideIndex, () =>
-      this.getCarOptions()
-    );
-
-    // Index 0 is "All cars", 1 is the first car, 2 is the second and so on
-    // Default to 1 so that the first car is selected
-    this.selectedRideCarIndex = store(1);
-
     this.visualisationMode = store<VisualisationMode>(
       settings.visualisationMode
     );
@@ -62,16 +52,17 @@ export class MainWindowController implements IDisposable {
   }
 
   private indexOfRide(ride: Ride): number {
-    return this.trackedRides.get().indexOf(ride);
-  }
+    if (ride == null) return -1;
 
-  private getCarOptions(): string[] {
-    const selectedRide = this.getSelectedRide();
-    if (selectedRide == null) return [];
-    const carCount = getRideCarCount(selectedRide);
-    const options = range(1, carCount + 1).map((n) => `Car ${n}`);
-    options.unshift("All cars");
-    return options;
+    const trackedRides = this.trackedRides.get();
+
+    for (let i = 0; i < trackedRides.length; i++) {
+      if (trackedRides[i].id === ride.id) {
+        return i;
+      }
+    }
+
+    return -1;
   }
 
   getSelectedRide(): Ride | null {
@@ -84,13 +75,8 @@ export class MainWindowController implements IDisposable {
       throw new Error("No ride selected");
     }
 
-    // Index 0 is "All cars", 1 is the first car, 2 is the second and so on
-    // We subtract 1 so that -1 means all cars and all other values are the car index
-    const selectedCar = this.selectedRideCarIndex.get() - 1;
-
     return {
       selectedRide,
-      selectedCar,
       visualisationMode: this.visualisationMode.get(),
       colours: this.colours.getModel(),
       thresholds: this.thresholds.getModel(),

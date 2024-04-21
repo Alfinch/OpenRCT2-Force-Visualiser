@@ -30,8 +30,6 @@ export function openVisualiseWindow(
 
   const showViewport = store(true);
 
-  console.log(settings.selectedRide.object);
-
   const vehicleString =
     settings.selectedRide.object.maxCarsInTrain -
       settings.selectedRide.object.zeroCars >
@@ -39,8 +37,7 @@ export function openVisualiseWindow(
       ? "train"
       : "car";
   const allVehicles = settings.selectedRide.vehicles.map(
-    (v) =>
-      getTrain(v)[settings.selectedCar === -1 ? 0 : settings.selectedCar].id
+    (v) => getTrain(v)[0].id
   );
   const selectedVehicleIndex = store(0);
   const selectedVehicle = compute(

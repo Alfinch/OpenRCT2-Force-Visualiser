@@ -1,6 +1,5 @@
 export { deepFreeze, DeepReadonly } from "./deep-freeze";
 export { formatGForce } from "./format-g-force";
-export { getRideCarCount } from "./get-ride-car-count";
 export { getTrain } from "./get-train";
 export { lowercaseFirstLetter } from "./lowercase-first-letter";
 export { onNextTick } from "./on-next-tick";
