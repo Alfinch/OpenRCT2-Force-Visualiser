@@ -6,7 +6,7 @@ import { VisualisationSettings } from "./models";
 
 registerPlugin({
   name: "Force visualiser",
-  version: "1.1.0",
+  version: "1.2.3",
   authors: ["Alfie Woodland"],
   type: "local",
   licence: "MIT",
