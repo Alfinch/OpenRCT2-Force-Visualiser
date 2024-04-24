@@ -3,3 +3,9 @@ export enum VisualisationMode {
   Vertical = "Vertical Gs",
   Lateral = "Lateral Gs",
 }
+
+export const visualisationModes = Object.freeze([
+  VisualisationMode.All,
+  VisualisationMode.Vertical,
+  VisualisationMode.Lateral,
+]);

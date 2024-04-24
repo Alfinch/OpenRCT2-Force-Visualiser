@@ -50,10 +50,7 @@ export function openMainWindow(
       }),
       dropdown({
         items: visualisationModes,
-        selectedIndex: 0,
-        onChange: (i) => {
-          controller.visualisationMode.set(visualisationModes[i]);
-        },
+        selectedIndex: twoway(controller.visualisationModeIndex),
       }),
       groupbox({
         text: "Colours",

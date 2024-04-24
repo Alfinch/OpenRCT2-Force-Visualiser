@@ -5,6 +5,7 @@ import { deepFreeze } from "../helpers/misc";
 import { ForceColoursController } from "./force-colours-controller";
 import { ForceThresholdsController } from "./force-thresholds-controller";
 import { isTrackedRide } from "../helpers/track";
+import { visualisationModes } from "../models/visualisation-mode";
 
 const defaultValues = deepFreeze(<VisualisationSettings>{
   visualisationMode: VisualisationMode.All,
@@ -15,7 +16,8 @@ export class MainWindowController implements IDisposable {
   trackedRideNames: Store<string[]>;
 
   selectedRideIndex: WritableStore<number>;
-  visualisationMode: WritableStore<VisualisationMode>;
+  visualisationModeIndex: WritableStore<number>;
+  visualisationMode: Store<VisualisationMode>;
   disableLaterals: Store<boolean>;
   disableVerticals: Store<boolean>;
 
@@ -35,8 +37,12 @@ export class MainWindowController implements IDisposable {
 
     this.selectedRideIndex = store(this.indexOfRide(settings.selectedRide));
 
-    this.visualisationMode = store<VisualisationMode>(
-      settings.visualisationMode
+    this.visualisationModeIndex = store(
+      visualisationModes.indexOf(settings.visualisationMode)
+    );
+    this.visualisationMode = compute(
+      this.visualisationModeIndex,
+      (index) => visualisationModes[index]
     );
     this.disableLaterals = compute(
       this.visualisationMode,
@@ -85,7 +91,7 @@ export class MainWindowController implements IDisposable {
 
   reset(): void {
     this.selectedRideIndex.set(0);
-    this.visualisationMode.set(defaultValues.visualisationMode);
+    this.visualisationModeIndex.set(0);
     this.colours.reset();
     this.thresholds.reset();
   }

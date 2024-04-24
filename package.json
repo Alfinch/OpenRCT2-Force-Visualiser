@@ -19,6 +19,6 @@
   "dependencies": {
     "@types/lodash-es": "^4.17.12",
     "lodash-es": "^4.17.21",
-    "openrct2-flexui": "^0.1.0-prerelease.15"
+    "openrct2-flexui": "^0.1.0-prerelease.17"
   }
 }
